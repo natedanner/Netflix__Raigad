@@ -89,7 +89,7 @@ public class InjectedWebListener extends GuiceServletContextListener {
     private static class JaxServletModule extends ServletModule {
         @Override
         protected void configureServlets() {
-            Map<String, String> params = new HashMap<String, String>();
+            Map<String, String> params = new HashMap<>();
             params.put(PackagesResourceConfig.PROPERTY_PACKAGES, "unbound");
             params.put("com.sun.jersey.config.property.packages", "com.netflix.raigad.resources");
             params.put(ServletContainer.PROPERTY_FILTER_CONTEXT_PATH, "/REST");

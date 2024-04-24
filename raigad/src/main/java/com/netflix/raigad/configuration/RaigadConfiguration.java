@@ -124,36 +124,38 @@ public class RaigadConfiguration implements IConfiguration {
     private static final String CONFIG_ACL_GROUP_NAME = MY_WEBAPP_NAME + ".acl.groupname";
     private static final String CONFIG_ACL_GROUP_NAME_FOR_VPC = MY_WEBAPP_NAME + ".acl.groupname.vpc";
 
-    private static Boolean IS_DEPLOYED_IN_VPC = false;
-    private static Boolean IS_VPC_EXTERNAL = false;
+    private static Boolean isDeployedInVpc = false;
+    private static Boolean isVpcExternal = false;
     private static final String MAC_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/mac");
-    private static String VPC_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/network/interfaces/macs/" + MAC_ID + "/vpc-id").trim();
+    private static String vpcId = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/network/interfaces/macs/" + MAC_ID + "/vpc-id").trim();
 
-    private static String PUBLIC_HOSTNAME, PUBLIC_IP, ACL_GROUP_ID_FOR_VPC;
+    private static String publicHostname;
+    private static String publicIp;
+    private static String aclGroupIdForVpc;
 
     {
-        if (StringUtils.equals(VPC_ID, SystemUtils.NOT_FOUND_STR)) {
-            PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
-            PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
+        if (StringUtils.equals(vpcId, SystemUtils.NOT_FOUND_STR)) {
+            publicHostname = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
+            publicIp = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
         } else {
-            IS_DEPLOYED_IN_VPC = true;
-            IS_VPC_EXTERNAL = true;
+            isDeployedInVpc = true;
+            isVpcExternal = true;
 
-            PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
-            if (StringUtils.equals(PUBLIC_HOSTNAME, SystemUtils.NOT_FOUND_STR)) {
+            publicHostname = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
+            if (StringUtils.equals(publicHostname, SystemUtils.NOT_FOUND_STR)) {
                 // Looks like this is VPC internal, trying local hostname
-                PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
-                IS_VPC_EXTERNAL = false;
+                publicHostname = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
+                isVpcExternal = false;
             }
-            logger.info("Node host name initialized with {}", PUBLIC_HOSTNAME);
+            logger.info("Node host name initialized with {}", publicHostname);
 
-            PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
-            if (StringUtils.equals(PUBLIC_IP, SystemUtils.NOT_FOUND_STR)) {
+            publicIp = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
+            if (StringUtils.equals(publicIp, SystemUtils.NOT_FOUND_STR)) {
                 // Looks like this is VPC internal, trying local IP
-                PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
-                IS_VPC_EXTERNAL = false;
+                publicIp = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
+                isVpcExternal = false;
             }
-            logger.info("Node IP initialized with {}", PUBLIC_IP);
+            logger.info("Node IP initialized with {}", publicIp);
         }
     }
 
@@ -164,13 +166,13 @@ public class RaigadConfiguration implements IConfiguration {
     private static final String INSTANCE_TYPE = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/instance-type").trim();
     private static final String ES_NODE_NAME = RAC + "." + INSTANCE_ID;
 
-    private static String ASG_NAME = System.getenv("ASG_NAME");
-    private static String STACK_NAME = System.getenv("STACK_NAME");
+    private static String asgName = System.getenv("ASG_NAME");
+    private static String stackName = System.getenv("STACK_NAME");
     private static String REGION = System.getenv("EC2_REGION");
 
     // Defaults
-    private final String DEFAULT_CLUSTER_NAME = "es_samplecluster";
-    private List<String> DEFAULT_AVAILABILITY_ZONES = ImmutableList.of();
+    private static final String DEFAULT_CLUSTER_NAME = "es_samplecluster";
+    private List<String> defaultAvailabilityZones = ImmutableList.of();
 
 
     private static final String DEFAULT_DATA_LOCATION = "/mnt/data/es";
@@ -253,81 +255,81 @@ public class RaigadConfiguration implements IConfiguration {
     private final IConfigSource config;
     private final ICredential provider;
 
-    private final DynamicStringProperty CREDENTIAL_PROVIDER = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_CREDENTIAL_PROVIDER, DEFAULT_CREDENTIAL_PROVIDER);
-    private final DynamicStringProperty ES_STARTUP_SCRIPT_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_START_SCRIPT, DEFAULT_ES_START_SCRIPT);
-    private final DynamicStringProperty ES_STOP_SCRIPT_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_STOP_SCRIPT, DEFAULT_ES_STOP_SCRIPT);
-    private final DynamicStringProperty DATA_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_DATA_LOCATION, DEFAULT_DATA_LOCATION);
-    private final DynamicStringProperty LOG_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_LOG_LOCATION, DEFAULT_LOG_LOCATION);
-    private final DynamicStringProperty ES_HOME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_HOME, DEFAULT_ES_HOME);
-    private final DynamicStringProperty FD_PING_INTERVAL = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_INTERVAL, DEFAULT_FD_PING_INTERVAL);
-    private final DynamicStringProperty FD_PING_TIMEOUT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_TIMEOUT, DEFAULT_FD_PING_TIMEOUT);
-    private final DynamicIntProperty ES_HTTP_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_HTTP_PORT, DEFAULT_HTTP_PORT);
-    private final DynamicIntProperty ES_TRANSPORT_TCP_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_TRANSPORT_TCP_PORT, DEFAULT_TRANSPORT_TCP_PORT);
-    private final DynamicIntProperty MINIMUM_MASTER_NODES = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_MIN_MASTER_NODES, DEFAULT_MIN_MASTER_NODES);
-    private final DynamicIntProperty NUM_REPLICAS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_NUM_REPLICAS, DEFAULT_NUM_REPLICAS);
-    private final DynamicIntProperty NUM_SHARDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_NUM_SHARDS, DEFAULT_NUM_SHARDS);
-    private final DynamicStringProperty PING_TIMEOUT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_PING_TIMEOUT, DEFAULT_PING_TIMEOUT);
-    private final DynamicStringProperty INDEX_REFRESH_INTERVAL = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_INDEX_REFRESH_INTERVAL, DEFAULT_INDEX_REFRESH_INTERVAL);
-    private final DynamicBooleanProperty IS_MASTER_QUORUM_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_MASTER_QUORUM_ENABLED, DEFAULT_IS_MASTER_QUORUM_ENABLED);
-    private final DynamicBooleanProperty IS_PING_MULTICAST_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_PING_MULTICAST_ENABLED, DEFAULT_IS_PING_MULTICAST_ENABLED);
-    private final DynamicStringProperty BOOTCLUSTER_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BOOTCLUSTER_NAME, DEFAULT_CONFIG_BOOTCLUSTER_NAME);
-    private final DynamicStringProperty ES_DISCOVERY_TYPE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_DISCOVERY_TYPE, DEFAULT_ES_DISCOVERY_TYPE);
-    private final DynamicStringProperty SECURITY_GROUP_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_SECURITY_GROUP_NAME, DEFAULT_CLUSTER_NAME);
-    private final DynamicBooleanProperty IS_MULTI_DC_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_MULTI_DC_ENABLED, DEFAULT_IS_MULTI_DC_ENABLED);
-    private final DynamicBooleanProperty IS_ASG_BASED_DEPLOYMENT_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_ASG_BASED_DEPLOYMENT_ENABLED, DEFAULT_IS_ASG_BASED_DEPLOYMENT_ENABLED);
-    private final DynamicStringProperty ES_CLUSTER_ROUTING_ATTRIBUTES = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_CLUSTER_ROUTING_ATTRIBUTES, DEFAULT_ES_CLUSTER_ROUTING_ATTRIBUTES);
-    private final DynamicBooleanProperty IS_SHARD_ALLOCATION_POLICY_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SHARD_ALLOCATION_POLICY_ENABLED, DEFAULT_IS_SHARD_ALLOCATION_POLICY_ENABLED);
-    private final DynamicStringProperty ES_SHARD_ALLOCATION_ATTRIBUTE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_SHARD_ALLOCATION_ATTRIBUTE, DEFAULT_ES_SHARD_ALLOCATION_ATTRIBUTE);
-    private final DynamicStringProperty EXTRA_PARAMS = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_EXTRA_PARAMS, DEFAULT_CONFIG_EXTRA_PARAMS);
-    private final DynamicBooleanProperty IS_DEBUG_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_DEBUG_ENABLED, DEFAULT_IS_DEBUG_ENABLED);
-    private final DynamicBooleanProperty IS_SHARDS_PER_NODE_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SHARDS_PER_NODE_ENABLED, DEFAULT_IS_SHARDS_PER_NODE_ENABLED);
-    private final DynamicIntProperty TOTAL_SHARDS_PER_NODES = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_SHARDS_PER_NODE, DEFAULT_SHARDS_PER_NODE);
-    private final DynamicStringProperty INDEX_METADATA = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_INDEX_METADATA, DEFAULT_INDEX_METADATA);
-    private final DynamicBooleanProperty IS_INDEX_AUTOCREATION_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_INDEX_AUTOCREATION_ENABLED, DEFAULT_IS_INDEX_AUTOCREATION_ENABLED);
-    private final DynamicIntProperty AUTOCREATE_INDEX_TIMEOUT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_TIMEOUT, DEFAULT_AUTOCREATE_INDEX_TIMEOUT);
-    private final DynamicIntProperty AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS, DEFAULT_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS);
-    private final DynamicIntProperty AUTOCREATE_INDEX_SCHEDULE_MINUTES = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_SCHEDULE_MINUTES, DEFAULT_AUTOCREATE_INDEX_SCHEDULE_MINUTES);
-    private final DynamicStringProperty ES_PROCESS_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_PROCESS_NAME, DEFAULT_ES_PROCESS_NAME);
-    private final DynamicStringProperty BUCKET_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BACKUP_LOCATION, DEFAULT_BACKUP_LOCATION);
-    private final DynamicIntProperty BACKUP_HOUR = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_BACKUP_HOUR, DEFAULT_BACKUP_HOUR);
-    private final DynamicStringProperty COMMA_SEPARATED_INDICES_TO_BACKUP = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BACKUP_COMMA_SEPARATED_INDICES, DEFAULT_BACKUP_COMMA_SEPARATED_INDICES);
-    private final DynamicBooleanProperty PARTIALLY_BACKUP_INDICES = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_PARTIAL_INDICES, DEFAULT_BACKUP_PARTIAL_INDICES);
-    private final DynamicBooleanProperty INCLUDE_GLOBAL_STATE_DURING_BACKUP = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_INCLUDE_GLOBAL_STATE, DEFAULT_BACKUP_INCLUDE_GLOBAL_STATE);
-    private final DynamicBooleanProperty WAIT_FOR_COMPLETION_OF_BACKUP = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_WAIT_FOR_COMPLETION, DEFAULT_BACKUP_WAIT_FOR_COMPLETION);
-    private final DynamicBooleanProperty INCLUDE_INDEX_NAME_IN_SNAPSHOT_BACKUP = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_INCLUDE_INDEX_NAME, DEFAULT_BACKUP_INCLUDE_INDEX_NAME);
-    private final DynamicBooleanProperty IS_RESTORE_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_RESTORE_ENABLED, DEFAULT_IS_RESTORE_ENABLED);
-    private final DynamicStringProperty RESTORE_REPOSITORY_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_REPOSITORY_NAME, DEFAULT_RESTORE_REPOSITORY_NAME);
-    private final DynamicStringProperty RESTORE_REPOSITORY_TYPE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_REPOSITORY_TYPE, DEFAULT_RESTORE_REPOSITORY_TYPE);
-    private final DynamicStringProperty RESTORE_SNAPSHOT_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_SNAPSHOT_NAME, DEFAULT_RESTORE_SNAPSHOT_NAME);
-    private final DynamicStringProperty COMMA_SEPARATED_INDICES_TO_RESTORE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_COMMA_SEPARATED_INDICES, DEFAULT_RESTORE_COMMA_SEPARATED_INDICES);
-    private final DynamicIntProperty RESTORE_TASK_INITIAL_START_DELAY_SECONDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_RESTORE_TASK_INITIAL_START_DELAY_SECONDS, DEFAULT_RESTORE_TASK_INITIAL_START_DELAY_SECONDS);
-    private final DynamicStringProperty RESTORE_SOURCE_CLUSTER_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_SOURCE_CLUSTER_NAME, DEFAULT_RESTORE_SOURCE_CLUSTER_NAME);
-    private final DynamicStringProperty RESTORE_SOURCE_REPO_REGION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_SOURCE_REPO_REGION, DEFAULT_RESTORE_SOURCE_REPO_REGION);
-    private final DynamicStringProperty RESTORE_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_LOCATION, DEFAULT_RESTORE_LOCATION);
-    private final DynamicBooleanProperty IS_SNAPSHOT_BACKUP_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_IS_SNAPSHOT_ENABLED, DEFAULT_BACKUP_IS_SNAPSHOT_ENABLED);
-    private final DynamicBooleanProperty IS_HOURLY_SNAPSHOT_BACKUP_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_IS_HOURLY_SNAPSHOT_ENABLED, DEFAULT_BACKUP_IS_HOURLY_SNAPSHOT_ENABLED);
-    private final DynamicLongProperty BACKUP_CRON_TIMER_SECONDS = DynamicPropertyFactory.getInstance().getLongProperty(CONFIG_BACKUP_CRON_TIMER_SECONDS, DEFAULT_BACKUP_CRON_TIMER_SECONDS);
-    private final DynamicBooleanProperty AM_I_TRIBE_NODE = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_TRIBE_NODE, DEFAULT_AM_I_TRIBE_NODE);
-    private final DynamicBooleanProperty AM_I_WRITE_ENABLED_TRIBE_NODE = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_WRITE_ENABLED_TRIBE_NODE, DEFAULT_AM_I_WRITE_ENABLED_TRIBE_NODE);
-    private final DynamicBooleanProperty AM_I_METADATA_ENABLED_TRIBE_NODE = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_METADATA_ENABLED_TRIBE_NODE, DEFAULT_AM_I_METADATA_ENABLED_TRIBE_NODE);
-    private final DynamicStringProperty COMMA_SEPARATED_SOURCE_CLUSTERS_IN_TRIBE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_TRIBE_COMMA_SEPARATED_SOURCE_CLUSTERS, DEFAULT_TRIBE_COMMA_SEPARATED_SOURCE_CLUSTERS);
-    private final DynamicBooleanProperty AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE, DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE);
-    private final DynamicStringProperty COMMA_SEPARATED_TRIBE_CLUSTERS = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_TRIBE_COMMA_SEPARATED_TRIBE_CLUSTERS, DEFAULT_TRIBE_COMMA_SEPARATED_TRIBE_CLUSTERS);
-    private final DynamicBooleanProperty IS_NODE_MISMATCH_WITH_DISCOVERY_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_NODEMISMATCH_WITH_DISCOVERY_ENABLED, DEFAULT_IS_NODEMISMATCH_WITH_DISCOVERY_ENABLED);
-    private final DynamicIntProperty DESIRED_NUM_NODES_IN_CLUSTER = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_DESIRED_NUM_NODES_IN_CLUSTER, DEFAULT_DESIRED_NUM_NODES_IN_CLUSTER);
-    private final DynamicBooleanProperty IS_EUREKA_HEALTH_CHECK_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_EUREKA_HEALTH_CHECK_ENABLED, DEFAULT_IS_EUREKA_HEALTH_CHECK_ENABLED);
-    private final DynamicBooleanProperty IS_LOCAL_MODE_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_LOCAL_MODE_ENABLED, DEFAULT_IS_LOCAL_MODE_ENABLED);
-    private final DynamicStringProperty CASSANDRA_KEYSPACE_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_CASSANDRA_KEYSPACE_NAME, DEFAULT_CASSANDRA_KEYSPACE_NAME);
-    private final DynamicIntProperty CASSANDRA_THRIFT_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_CASSANDRA_THRIFT_PORT, DEFAULT_CASSANDRA_THRIFT_PORT);
-    private final DynamicBooleanProperty IS_EUREKA_HOST_SUPPLIER_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_EUREKA_HOST_SUPPLIER_ENABLED, DEFAULT_IS_EUREKA_HOST_SUPPLIER_ENABLED);
-    private final DynamicStringProperty COMMA_SEPARATED_CASSANDRA_HOSTNAMES = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES, DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES);
-    private final DynamicBooleanProperty IS_SECURITY_GROUP_IN_MULTI_DC = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC, DEFAULT_IS_SECURITY_GROUP_IN_MULTI_DC);
-    private final DynamicBooleanProperty IS_KIBANA_SETUP_REQUIRED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_KIBANA_SETUP_REQUIRED, DEFAULT_IS_KIBANA_SETUP_REQUIRED);
-    private final DynamicIntProperty KIBANA_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_KIBANA_PORT, DEFAULT_KIBANA_PORT);
-    private final DynamicBooleanProperty AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC, DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC);
-    private final DynamicBooleanProperty REPORT_METRICS_FROM_MASTER_ONLY = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_REPORT_METRICS_FROM_MASTER_ONLY, DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY);
-    private final DynamicStringProperty TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT, DEFAULT_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT);
-    private final DynamicStringProperty ACL_GROUP_NAME_FOR_VPC = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ACL_GROUP_NAME_FOR_VPC, DEFAULT_ACL_GROUP_NAME_FOR_VPC);
+    private final DynamicStringProperty credentialProvider = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_CREDENTIAL_PROVIDER, DEFAULT_CREDENTIAL_PROVIDER);
+    private final DynamicStringProperty esStartupScriptLocation = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_START_SCRIPT, DEFAULT_ES_START_SCRIPT);
+    private final DynamicStringProperty esStopScriptLocation = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_STOP_SCRIPT, DEFAULT_ES_STOP_SCRIPT);
+    private final DynamicStringProperty dataLocation = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_DATA_LOCATION, DEFAULT_DATA_LOCATION);
+    private final DynamicStringProperty logLocation = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_LOG_LOCATION, DEFAULT_LOG_LOCATION);
+    private final DynamicStringProperty esHome = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_HOME, DEFAULT_ES_HOME);
+    private final DynamicStringProperty fdPingInterval = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_INTERVAL, DEFAULT_FD_PING_INTERVAL);
+    private final DynamicStringProperty fdPingTimeout = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_TIMEOUT, DEFAULT_FD_PING_TIMEOUT);
+    private final DynamicIntProperty esHttpPort = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_HTTP_PORT, DEFAULT_HTTP_PORT);
+    private final DynamicIntProperty esTransportTcpPort = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_TRANSPORT_TCP_PORT, DEFAULT_TRANSPORT_TCP_PORT);
+    private final DynamicIntProperty minimumMasterNodes = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_MIN_MASTER_NODES, DEFAULT_MIN_MASTER_NODES);
+    private final DynamicIntProperty numReplicas = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_NUM_REPLICAS, DEFAULT_NUM_REPLICAS);
+    private final DynamicIntProperty numShards = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_NUM_SHARDS, DEFAULT_NUM_SHARDS);
+    private final DynamicStringProperty pingTimeout = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_PING_TIMEOUT, DEFAULT_PING_TIMEOUT);
+    private final DynamicStringProperty indexRefreshInterval = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_INDEX_REFRESH_INTERVAL, DEFAULT_INDEX_REFRESH_INTERVAL);
+    private final DynamicBooleanProperty isMasterQuorumEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_MASTER_QUORUM_ENABLED, DEFAULT_IS_MASTER_QUORUM_ENABLED);
+    private final DynamicBooleanProperty isPingMulticastEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_PING_MULTICAST_ENABLED, DEFAULT_IS_PING_MULTICAST_ENABLED);
+    private final DynamicStringProperty bootclusterName = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BOOTCLUSTER_NAME, DEFAULT_CONFIG_BOOTCLUSTER_NAME);
+    private final DynamicStringProperty esDiscoveryType = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_DISCOVERY_TYPE, DEFAULT_ES_DISCOVERY_TYPE);
+    private final DynamicStringProperty securityGroupName = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_SECURITY_GROUP_NAME, DEFAULT_CLUSTER_NAME);
+    private final DynamicBooleanProperty isMultiDcEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_MULTI_DC_ENABLED, DEFAULT_IS_MULTI_DC_ENABLED);
+    private final DynamicBooleanProperty isAsgBasedDeploymentEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_ASG_BASED_DEPLOYMENT_ENABLED, DEFAULT_IS_ASG_BASED_DEPLOYMENT_ENABLED);
+    private final DynamicStringProperty esClusterRoutingAttributes = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_CLUSTER_ROUTING_ATTRIBUTES, DEFAULT_ES_CLUSTER_ROUTING_ATTRIBUTES);
+    private final DynamicBooleanProperty isShardAllocationPolicyEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SHARD_ALLOCATION_POLICY_ENABLED, DEFAULT_IS_SHARD_ALLOCATION_POLICY_ENABLED);
+    private final DynamicStringProperty esShardAllocationAttribute = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_SHARD_ALLOCATION_ATTRIBUTE, DEFAULT_ES_SHARD_ALLOCATION_ATTRIBUTE);
+    private final DynamicStringProperty extraParams = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_EXTRA_PARAMS, DEFAULT_CONFIG_EXTRA_PARAMS);
+    private final DynamicBooleanProperty isDebugEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_DEBUG_ENABLED, DEFAULT_IS_DEBUG_ENABLED);
+    private final DynamicBooleanProperty isShardsPerNodeEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SHARDS_PER_NODE_ENABLED, DEFAULT_IS_SHARDS_PER_NODE_ENABLED);
+    private final DynamicIntProperty totalShardsPerNodes = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_SHARDS_PER_NODE, DEFAULT_SHARDS_PER_NODE);
+    private final DynamicStringProperty indexMetadata = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_INDEX_METADATA, DEFAULT_INDEX_METADATA);
+    private final DynamicBooleanProperty isIndexAutocreationEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_INDEX_AUTOCREATION_ENABLED, DEFAULT_IS_INDEX_AUTOCREATION_ENABLED);
+    private final DynamicIntProperty autocreateIndexTimeout = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_TIMEOUT, DEFAULT_AUTOCREATE_INDEX_TIMEOUT);
+    private final DynamicIntProperty autocreateIndexInitialStartDelaySeconds = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS, DEFAULT_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS);
+    private final DynamicIntProperty autocreateIndexScheduleMinutes = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_SCHEDULE_MINUTES, DEFAULT_AUTOCREATE_INDEX_SCHEDULE_MINUTES);
+    private final DynamicStringProperty esProcessName = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_PROCESS_NAME, DEFAULT_ES_PROCESS_NAME);
+    private final DynamicStringProperty bucketName = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BACKUP_LOCATION, DEFAULT_BACKUP_LOCATION);
+    private final DynamicIntProperty backupHour = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_BACKUP_HOUR, DEFAULT_BACKUP_HOUR);
+    private final DynamicStringProperty commaSeparatedIndicesToBackup = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BACKUP_COMMA_SEPARATED_INDICES, DEFAULT_BACKUP_COMMA_SEPARATED_INDICES);
+    private final DynamicBooleanProperty partiallyBackupIndices = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_PARTIAL_INDICES, DEFAULT_BACKUP_PARTIAL_INDICES);
+    private final DynamicBooleanProperty includeGlobalStateDuringBackup = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_INCLUDE_GLOBAL_STATE, DEFAULT_BACKUP_INCLUDE_GLOBAL_STATE);
+    private final DynamicBooleanProperty waitForCompletionOfBackup = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_WAIT_FOR_COMPLETION, DEFAULT_BACKUP_WAIT_FOR_COMPLETION);
+    private final DynamicBooleanProperty includeIndexNameInSnapshotBackup = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_INCLUDE_INDEX_NAME, DEFAULT_BACKUP_INCLUDE_INDEX_NAME);
+    private final DynamicBooleanProperty isRestoreEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_RESTORE_ENABLED, DEFAULT_IS_RESTORE_ENABLED);
+    private final DynamicStringProperty restoreRepositoryName = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_REPOSITORY_NAME, DEFAULT_RESTORE_REPOSITORY_NAME);
+    private final DynamicStringProperty restoreRepositoryType = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_REPOSITORY_TYPE, DEFAULT_RESTORE_REPOSITORY_TYPE);
+    private final DynamicStringProperty restoreSnapshotName = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_SNAPSHOT_NAME, DEFAULT_RESTORE_SNAPSHOT_NAME);
+    private final DynamicStringProperty commaSeparatedIndicesToRestore = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_COMMA_SEPARATED_INDICES, DEFAULT_RESTORE_COMMA_SEPARATED_INDICES);
+    private final DynamicIntProperty restoreTaskInitialStartDelaySeconds = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_RESTORE_TASK_INITIAL_START_DELAY_SECONDS, DEFAULT_RESTORE_TASK_INITIAL_START_DELAY_SECONDS);
+    private final DynamicStringProperty restoreSourceClusterName = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_SOURCE_CLUSTER_NAME, DEFAULT_RESTORE_SOURCE_CLUSTER_NAME);
+    private final DynamicStringProperty restoreSourceRepoRegion = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_SOURCE_REPO_REGION, DEFAULT_RESTORE_SOURCE_REPO_REGION);
+    private final DynamicStringProperty restoreLocation = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_LOCATION, DEFAULT_RESTORE_LOCATION);
+    private final DynamicBooleanProperty isSnapshotBackupEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_IS_SNAPSHOT_ENABLED, DEFAULT_BACKUP_IS_SNAPSHOT_ENABLED);
+    private final DynamicBooleanProperty isHourlySnapshotBackupEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_IS_HOURLY_SNAPSHOT_ENABLED, DEFAULT_BACKUP_IS_HOURLY_SNAPSHOT_ENABLED);
+    private final DynamicLongProperty backupCronTimerSeconds = DynamicPropertyFactory.getInstance().getLongProperty(CONFIG_BACKUP_CRON_TIMER_SECONDS, DEFAULT_BACKUP_CRON_TIMER_SECONDS);
+    private final DynamicBooleanProperty amITribeNode = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_TRIBE_NODE, DEFAULT_AM_I_TRIBE_NODE);
+    private final DynamicBooleanProperty amIWriteEnabledTribeNode = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_WRITE_ENABLED_TRIBE_NODE, DEFAULT_AM_I_WRITE_ENABLED_TRIBE_NODE);
+    private final DynamicBooleanProperty amIMetadataEnabledTribeNode = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_METADATA_ENABLED_TRIBE_NODE, DEFAULT_AM_I_METADATA_ENABLED_TRIBE_NODE);
+    private final DynamicStringProperty commaSeparatedSourceClustersInTribe = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_TRIBE_COMMA_SEPARATED_SOURCE_CLUSTERS, DEFAULT_TRIBE_COMMA_SEPARATED_SOURCE_CLUSTERS);
+    private final DynamicBooleanProperty amISourceClusterForTribeNode = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE, DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE);
+    private final DynamicStringProperty commaSeparatedTribeClusters = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_TRIBE_COMMA_SEPARATED_TRIBE_CLUSTERS, DEFAULT_TRIBE_COMMA_SEPARATED_TRIBE_CLUSTERS);
+    private final DynamicBooleanProperty isNodeMismatchWithDiscoveryEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_NODEMISMATCH_WITH_DISCOVERY_ENABLED, DEFAULT_IS_NODEMISMATCH_WITH_DISCOVERY_ENABLED);
+    private final DynamicIntProperty desiredNumNodesInCluster = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_DESIRED_NUM_NODES_IN_CLUSTER, DEFAULT_DESIRED_NUM_NODES_IN_CLUSTER);
+    private final DynamicBooleanProperty isEurekaHealthCheckEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_EUREKA_HEALTH_CHECK_ENABLED, DEFAULT_IS_EUREKA_HEALTH_CHECK_ENABLED);
+    private final DynamicBooleanProperty isLocalModeEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_LOCAL_MODE_ENABLED, DEFAULT_IS_LOCAL_MODE_ENABLED);
+    private final DynamicStringProperty cassandraKeyspaceName = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_CASSANDRA_KEYSPACE_NAME, DEFAULT_CASSANDRA_KEYSPACE_NAME);
+    private final DynamicIntProperty cassandraThriftPort = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_CASSANDRA_THRIFT_PORT, DEFAULT_CASSANDRA_THRIFT_PORT);
+    private final DynamicBooleanProperty isEurekaHostSupplierEnabled = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_EUREKA_HOST_SUPPLIER_ENABLED, DEFAULT_IS_EUREKA_HOST_SUPPLIER_ENABLED);
+    private final DynamicStringProperty commaSeparatedCassandraHostnames = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES, DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES);
+    private final DynamicBooleanProperty isSecurityGroupInMultiDc = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC, DEFAULT_IS_SECURITY_GROUP_IN_MULTI_DC);
+    private final DynamicBooleanProperty isKibanaSetupRequired = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_KIBANA_SETUP_REQUIRED, DEFAULT_IS_KIBANA_SETUP_REQUIRED);
+    private final DynamicIntProperty kibanaPort = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_KIBANA_PORT, DEFAULT_KIBANA_PORT);
+    private final DynamicBooleanProperty amISourceClusterForTribeNodeInMultiDc = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC, DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC);
+    private final DynamicBooleanProperty reportMetricsFromMasterOnly = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_REPORT_METRICS_FROM_MASTER_ONLY, DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY);
+    private final DynamicStringProperty tribePreferredClusterIdOnConflict = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT, DEFAULT_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT);
+    private final DynamicStringProperty aclGroupNameForVpc = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ACL_GROUP_NAME_FOR_VPC, DEFAULT_ACL_GROUP_NAME_FOR_VPC);
 
     @Inject
     public RaigadConfiguration(ICredential provider, IConfigSource config) {
@@ -338,7 +340,7 @@ public class RaigadConfiguration implements IConfiguration {
     @Override
     public void initialize() {
         setupEnvVars();
-        this.config.initialize(ASG_NAME, REGION);
+        this.config.initialize(asgName, REGION);
         setDefaultRACList(REGION);
         populateProps();
         SystemUtils.createDirs(getDataFileLocation());
@@ -351,15 +353,15 @@ public class RaigadConfiguration implements IConfiguration {
             REGION = RAC.substring(0, RAC.length() - 1);
         }
 
-        ASG_NAME = StringUtils.isBlank(ASG_NAME) ? System.getProperty("ASG_NAME") : ASG_NAME;
+        asgName = StringUtils.isBlank(asgName) ? System.getProperty("ASG_NAME") : asgName;
 
-        if (StringUtils.isBlank(ASG_NAME)) {
-            ASG_NAME = populateASGName(REGION, INSTANCE_ID);
+        if (StringUtils.isBlank(asgName)) {
+            asgName = populateASGName(REGION, INSTANCE_ID);
         }
 
-        STACK_NAME = StringUtils.isBlank(STACK_NAME) ? System.getProperty("STACK_NAME") : STACK_NAME;
+        stackName = StringUtils.isBlank(stackName) ? System.getProperty("STACK_NAME") : stackName;
 
-        logger.info(String.format("REGION set to [%s], ASG Name set to [%s]", REGION, ASG_NAME));
+        logger.info(String.format("REGION set to [%s], ASG Name set to [%s]", REGION, asgName));
     }
 
     /**
@@ -400,8 +402,9 @@ public class RaigadConfiguration implements IConfiguration {
             for (Reservation resr : res.getReservations()) {
                 for (Instance ins : resr.getInstances()) {
                     for (com.amazonaws.services.ec2.model.Tag tag : ins.getTags()) {
-                        if (tag.getKey().equals("aws:autoscaling:groupName"))
+                        if ("aws:autoscaling:groupName".equals(tag.getKey())) {
                             return tag.getValue();
+                        }
                     }
                 }
             }
@@ -421,24 +424,24 @@ public class RaigadConfiguration implements IConfiguration {
         List<String> zone = Lists.newArrayList();
 
         for (AvailabilityZone reg : res.getAvailabilityZones()) {
-            if (reg.getState().equals("available")) {
+            if ("available".equals(reg.getState())) {
                 zone.add(reg.getZoneName());
             }
             if (zone.size() == 3) {
                 break;
             }
         }
-        DEFAULT_AVAILABILITY_ZONES = ImmutableList.copyOf(zone);
+        defaultAvailabilityZones = ImmutableList.copyOf(zone);
     }
 
     private void populateProps() {
-        config.set(CONFIG_ASG_NAME, ASG_NAME);
+        config.set(CONFIG_ASG_NAME, asgName);
         config.set(CONFIG_REGION_NAME, REGION);
     }
 
     @Override
     public List<String> getRacs() {
-        return config.getList(CONFIG_AVAILABILITY_ZONES, DEFAULT_AVAILABILITY_ZONES);
+        return config.getList(CONFIG_AVAILABILITY_ZONES, defaultAvailabilityZones);
     }
 
     @Override
@@ -453,12 +456,12 @@ public class RaigadConfiguration implements IConfiguration {
 
     @Override
     public String getASGName() {
-        return config.get(CONFIG_ASG_NAME, ASG_NAME);
+        return config.get(CONFIG_ASG_NAME, asgName);
     }
 
     @Override
     public String getStackName() {
-        return config.get(CONFIG_STACK_NAME, STACK_NAME);
+        return config.get(CONFIG_STACK_NAME, stackName);
     }
 
     @Override
@@ -468,17 +471,17 @@ public class RaigadConfiguration implements IConfiguration {
 
     @Override
     public String getDataFileLocation() {
-        return DATA_LOCATION.get();
+        return dataLocation.get();
     }
 
     @Override
     public String getLogFileLocation() {
-        return LOG_LOCATION.get();
+        return logLocation.get();
     }
 
     @Override
     public String getElasticsearchStartupScript() {
-        return ES_STARTUP_SCRIPT_LOCATION.get();
+        return esStartupScriptLocation.get();
     }
 
     @Override
@@ -488,87 +491,87 @@ public class RaigadConfiguration implements IConfiguration {
 
     @Override
     public String getBackupLocation() {
-        return BUCKET_NAME.get();
+        return bucketName.get();
     }
 
     @Override
     public String getElasticsearchHome() {
-        return ES_HOME.get();
+        return esHome.get();
     }
 
     @Override
     public String getElasticsearchStopScript() {
-        return ES_STOP_SCRIPT_LOCATION.get();
+        return esStopScriptLocation.get();
     }
 
     @Override
     public String getFdPingInterval() {
-        return FD_PING_INTERVAL.get();
+        return fdPingInterval.get();
     }
 
     @Override
     public String getFdPingTimeout() {
-        return FD_PING_TIMEOUT.get();
+        return fdPingTimeout.get();
     }
 
     @Override
     public int getHttpPort() {
-        return ES_HTTP_PORT.get();
+        return esHttpPort.get();
     }
 
     @Override
     public int getTransportTcpPort() {
-        return ES_TRANSPORT_TCP_PORT.get();
+        return esTransportTcpPort.get();
     }
 
     @Override
     public int getMinimumMasterNodes() {
-        return MINIMUM_MASTER_NODES.get();
+        return minimumMasterNodes.get();
     }
 
     @Override
     public int getNumOfReplicas() {
-        return NUM_REPLICAS.get();
+        return numReplicas.get();
     }
 
     @Override
     public int getTotalShardsPerNode() {
-        return TOTAL_SHARDS_PER_NODES.get();
+        return totalShardsPerNodes.get();
     }
 
     @Override
     public int getNumOfShards() {
-        return NUM_SHARDS.get();
+        return numShards.get();
     }
 
     @Override
     public String getPingTimeout() {
-        return PING_TIMEOUT.get();
+        return pingTimeout.get();
     }
 
     @Override
     public String getRefreshInterval() {
-        return INDEX_REFRESH_INTERVAL.get();
+        return indexRefreshInterval.get();
     }
 
     @Override
     public boolean isMasterQuorumEnabled() {
-        return IS_MASTER_QUORUM_ENABLED.get();
+        return isMasterQuorumEnabled.get();
     }
 
     @Override
     public boolean isPingMulticastEnabled() {
-        return IS_PING_MULTICAST_ENABLED.get();
+        return isPingMulticastEnabled.get();
     }
 
     @Override
     public String getHostIP() {
-        return PUBLIC_IP;
+        return publicIp;
     }
 
     @Override
     public String getHostname() {
-        return PUBLIC_HOSTNAME;
+        return publicHostname;
     }
 
     @Override
@@ -598,39 +601,39 @@ public class RaigadConfiguration implements IConfiguration {
 
     @Override
     public String getBootClusterName() {
-        return BOOTCLUSTER_NAME.get();
+        return bootclusterName.get();
     }
 
     @Override
     public String getElasticsearchDiscoveryType() {
-        return ES_DISCOVERY_TYPE.get();
+        return esDiscoveryType.get();
     }
 
     @Override
     public boolean isMultiDC() {
-        return IS_MULTI_DC_ENABLED.get();
+        return isMultiDcEnabled.get();
     }
 
     @Override
     public String getClusterRoutingAttributes() {
-        return ES_CLUSTER_ROUTING_ATTRIBUTES.get();
+        return esClusterRoutingAttributes.get();
     }
 
     @Override
     public boolean isAsgBasedDedicatedDeployment() {
-        return IS_ASG_BASED_DEPLOYMENT_ENABLED.get();
+        return isAsgBasedDeploymentEnabled.get();
     }
 
     @Override
     public String getElasticsearchProcessName() {
-        return ES_PROCESS_NAME.get();
+        return esProcessName.get();
     }
 
     /**
      * @return Elasticsearch Index Refresh Interval
      */
     public String getIndexRefreshInterval() {
-        return INDEX_REFRESH_INTERVAL.get();
+        return indexRefreshInterval.get();
     }
 
 
@@ -641,12 +644,12 @@ public class RaigadConfiguration implements IConfiguration {
 
     @Override
     public String getClusterShardAllocationAttribute() {
-        return ES_SHARD_ALLOCATION_ATTRIBUTE.get();
+        return esShardAllocationAttribute.get();
     }
 
     @Override
     public boolean isCustomShardAllocationPolicyEnabled() {
-        return IS_SHARD_ALLOCATION_POLICY_ENABLED.get();
+        return isShardAllocationPolicyEnabled.get();
     }
 
     @Override
@@ -656,231 +659,231 @@ public class RaigadConfiguration implements IConfiguration {
 
     @Override
     public boolean isDebugEnabled() {
-        return IS_DEBUG_ENABLED.get();
+        return isDebugEnabled.get();
     }
 
     @Override
     public boolean isShardPerNodeEnabled() {
-        return IS_SHARDS_PER_NODE_ENABLED.get();
+        return isShardsPerNodeEnabled.get();
     }
 
     @Override
     public boolean isIndexAutoCreationEnabled() {
-        return IS_INDEX_AUTOCREATION_ENABLED.get();
+        return isIndexAutocreationEnabled.get();
     }
 
     @Override
     public String getIndexMetadata() {
-        return INDEX_METADATA.get();
+        return indexMetadata.get();
     }
 
     @Override
     public int getAutoCreateIndexTimeout() {
-        return AUTOCREATE_INDEX_TIMEOUT.get();
+        return autocreateIndexTimeout.get();
     }
 
     @Override
     public int getAutoCreateIndexInitialStartDelaySeconds() {
-        return AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS.get();
+        return autocreateIndexInitialStartDelaySeconds.get();
     }
 
     @Override
     public int getAutoCreateIndexScheduleMinutes() {
-        return AUTOCREATE_INDEX_SCHEDULE_MINUTES.get();
+        return autocreateIndexScheduleMinutes.get();
     }
 
     @Override
     public String getExtraConfigParams() {
-        return EXTRA_PARAMS.get();
+        return extraParams.get();
     }
 
     @Override
     public int getBackupHour() {
-        return BACKUP_HOUR.get();
+        return backupHour.get();
     }
 
     public boolean isSnapshotBackupEnabled() {
-        return IS_SNAPSHOT_BACKUP_ENABLED.get();
+        return isSnapshotBackupEnabled.get();
     }
 
     @Override
     public String getCommaSeparatedIndicesToBackup() {
-        return COMMA_SEPARATED_INDICES_TO_BACKUP.get();
+        return commaSeparatedIndicesToBackup.get();
     }
 
     @Override
     public boolean partiallyBackupIndices() {
-        return PARTIALLY_BACKUP_INDICES.get();
+        return partiallyBackupIndices.get();
     }
 
     @Override
     public boolean includeGlobalStateDuringBackup() {
-        return INCLUDE_GLOBAL_STATE_DURING_BACKUP.get();
+        return includeGlobalStateDuringBackup.get();
     }
 
     @Override
     public boolean waitForCompletionOfBackup() {
-        return WAIT_FOR_COMPLETION_OF_BACKUP.get();
+        return waitForCompletionOfBackup.get();
     }
 
     @Override
     public boolean includeIndexNameInSnapshot() {
-        return INCLUDE_INDEX_NAME_IN_SNAPSHOT_BACKUP.get();
+        return includeIndexNameInSnapshotBackup.get();
     }
 
     @Override
     public boolean isHourlySnapshotEnabled() {
-        return IS_HOURLY_SNAPSHOT_BACKUP_ENABLED.get();
+        return isHourlySnapshotBackupEnabled.get();
     }
 
     @Override
     public long getBackupCronTimerInSeconds() {
-        return BACKUP_CRON_TIMER_SECONDS.get();
+        return backupCronTimerSeconds.get();
     }
 
     @Override
     public boolean isRestoreEnabled() {
-        return IS_RESTORE_ENABLED.get();
+        return isRestoreEnabled.get();
     }
 
     @Override
     public String getRestoreRepositoryName() {
-        return RESTORE_REPOSITORY_NAME.get();
+        return restoreRepositoryName.get();
     }
 
     @Override
     public String getRestoreSourceClusterName() {
-        return RESTORE_SOURCE_CLUSTER_NAME.get();
+        return restoreSourceClusterName.get();
     }
 
     @Override
     public String getRestoreSourceRepositoryRegion() {
-        return RESTORE_SOURCE_REPO_REGION.get();
+        return restoreSourceRepoRegion.get();
     }
 
     @Override
     public String getRestoreLocation() {
-        return RESTORE_LOCATION.get();
+        return restoreLocation.get();
     }
 
     @Override
     public String getRestoreRepositoryType() {
-        return RESTORE_REPOSITORY_TYPE.get();
+        return restoreRepositoryType.get();
     }
 
     @Override
     public String getRestoreSnapshotName() {
-        return RESTORE_SNAPSHOT_NAME.get();
+        return restoreSnapshotName.get();
     }
 
     @Override
     public String getCommaSeparatedIndicesToRestore() {
-        return COMMA_SEPARATED_INDICES_TO_RESTORE.get();
+        return commaSeparatedIndicesToRestore.get();
     }
 
     @Override
     public int getRestoreTaskInitialDelayInSeconds() {
-        return RESTORE_TASK_INITIAL_START_DELAY_SECONDS.get();
+        return restoreTaskInitialStartDelaySeconds.get();
     }
 
     @Override
     public boolean amITribeNode() {
-        return AM_I_TRIBE_NODE.get();
+        return amITribeNode.get();
     }
 
     @Override
     public boolean amIWriteEnabledTribeNode() {
-        return AM_I_WRITE_ENABLED_TRIBE_NODE.get();
+        return amIWriteEnabledTribeNode.get();
     }
 
     @Override
     public boolean amIMetadataEnabledTribeNode() {
-        return AM_I_METADATA_ENABLED_TRIBE_NODE.get();
+        return amIMetadataEnabledTribeNode.get();
     }
 
     @Override
     public String getCommaSeparatedSourceClustersForTribeNode() {
-        return COMMA_SEPARATED_SOURCE_CLUSTERS_IN_TRIBE.get();
+        return commaSeparatedSourceClustersInTribe.get();
     }
 
     @Override
     public boolean amISourceClusterForTribeNode() {
-        return AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE.get();
+        return amISourceClusterForTribeNode.get();
     }
 
     @Override
     public String getCommaSeparatedTribeClusterNames() {
-        return COMMA_SEPARATED_TRIBE_CLUSTERS.get();
+        return commaSeparatedTribeClusters.get();
     }
 
     @Override
     public boolean isNodeMismatchWithDiscoveryEnabled() {
-        return IS_NODE_MISMATCH_WITH_DISCOVERY_ENABLED.get();
+        return isNodeMismatchWithDiscoveryEnabled.get();
     }
 
     @Override
     public int getDesiredNumberOfNodesInCluster() {
-        return DESIRED_NUM_NODES_IN_CLUSTER.get();
+        return desiredNumNodesInCluster.get();
     }
 
     @Override
     public boolean isEurekaHealthCheckEnabled() {
-        return IS_EUREKA_HEALTH_CHECK_ENABLED.get();
+        return isEurekaHealthCheckEnabled.get();
     }
 
     @Override
     public boolean isLocalModeEnabled() {
-        return IS_LOCAL_MODE_ENABLED.get();
+        return isLocalModeEnabled.get();
     }
 
     @Override
     public String getCassandraKeyspaceName() {
-        return CASSANDRA_KEYSPACE_NAME.get();
+        return cassandraKeyspaceName.get();
     }
 
     @Override
     public int getCassandraThriftPortForAstyanax() {
-        return CASSANDRA_THRIFT_PORT.get();
+        return cassandraThriftPort.get();
     }
 
     @Override
     public boolean isEurekaHostSupplierEnabled() {
-        return IS_EUREKA_HOST_SUPPLIER_ENABLED.get();
+        return isEurekaHostSupplierEnabled.get();
     }
 
     @Override
     public String getCommaSeparatedCassandraHostNames() {
-        return COMMA_SEPARATED_CASSANDRA_HOSTNAMES.get();
+        return commaSeparatedCassandraHostnames.get();
     }
 
     @Override
     public boolean isSecurityGroupInMultiDC() {
-        return IS_SECURITY_GROUP_IN_MULTI_DC.get();
+        return isSecurityGroupInMultiDc.get();
     }
 
     @Override
     public boolean isKibanaSetupRequired() {
-        return IS_KIBANA_SETUP_REQUIRED.get();
+        return isKibanaSetupRequired.get();
     }
 
     @Override
     public int getKibanaPort() {
-        return KIBANA_PORT.get();
+        return kibanaPort.get();
     }
 
     @Override
     public boolean amISourceClusterForTribeNodeInMultiDC() {
-        return AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC.get();
+        return amISourceClusterForTribeNodeInMultiDc.get();
     }
 
     @Override
     public boolean reportMetricsFromMasterOnly() {
-        return REPORT_METRICS_FROM_MASTER_ONLY.get();
+        return reportMetricsFromMasterOnly.get();
     }
 
     @Override
     public String getTribePreferredClusterIdOnConflict() {
-        return TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT.get();
+        return tribePreferredClusterIdOnConflict.get();
     }
 
     @Override
@@ -890,27 +893,27 @@ public class RaigadConfiguration implements IConfiguration {
 
     @Override
     public boolean isDeployedInVPC() {
-        return IS_DEPLOYED_IN_VPC;
+        return isDeployedInVpc;
     }
 
     @Override
     public boolean isVPCExternal() {
-        return IS_VPC_EXTERNAL;
+        return isVpcExternal;
     }
 
     @Override
     public String getACLGroupNameForVPC() {
-        return ACL_GROUP_NAME_FOR_VPC.get();
+        return aclGroupNameForVpc.get();
     }
 
     @Override
     public String getACLGroupIdForVPC() {
-        return ACL_GROUP_ID_FOR_VPC;
+        return aclGroupIdForVpc;
     }
 
     @Override
     public void setACLGroupIdForVPC(String aclGroupIdForVPC) {
-        ACL_GROUP_ID_FOR_VPC = aclGroupIdForVPC;
+        aclGroupIdForVpc = aclGroupIdForVPC;
     }
 
     @Override

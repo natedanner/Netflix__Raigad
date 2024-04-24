@@ -70,7 +70,7 @@ public class AllCircuitBreakerStatsMonitor extends Task {
 
             List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
 
-            if (nodeStatsList.size() > 0) {
+            if (!nodeStatsList.isEmpty()) {
                 nodeStats = nodeStatsList.get(0);
             }
 
@@ -117,7 +117,7 @@ public class AllCircuitBreakerStatsMonitor extends Task {
         private final AtomicReference<AllCircuitBreakerStatsBean> allCircuitBreakerStatsBean;
 
         public Elasticsearch_AllCircuitBreakerStatsReporter() {
-            allCircuitBreakerStatsBean = new AtomicReference<AllCircuitBreakerStatsBean>(new AllCircuitBreakerStatsBean());
+            allCircuitBreakerStatsBean = new AtomicReference<>(new AllCircuitBreakerStatsBean());
         }
 
         @Monitor(name = "field_data_estimated_size_in_bytes", type = DataSourceType.GAUGE)

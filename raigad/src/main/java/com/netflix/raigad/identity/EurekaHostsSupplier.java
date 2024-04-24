@@ -70,7 +70,7 @@ public class EurekaHostsSupplier implements HostSupplier {
                 LOG.debug("Raigad fetching instance list for app: " + clusterName);
 
                 Application app = discoveryClient.getApplication(clusterName.toUpperCase());
-                List<Host> hosts = new ArrayList<Host>();
+                List<Host> hosts = new ArrayList<>();
 
                 if (app == null) {
                     LOG.warn("Cluster '{}' not found in eureka", clusterName);

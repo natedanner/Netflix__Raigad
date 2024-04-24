@@ -16,7 +16,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class TestElasticsearchProcessMonitor {
-    private static String ELASTICSEARCH_PROCESS_NAME = FakeConfiguration.ES_PROCESS_NAME;
+    private static final String ELASTICSEARCH_PROCESS_NAME = FakeConfiguration.ES_PROCESS_NAME;
 
     private Process pgrepProcess;
     private InputStream processInputStream;

@@ -124,15 +124,16 @@ public class ElasticsearchConfig {
     @param names - comma separated list of property name
      */
     public Response getProperty(@PathParam("names") String propNames) {
-        if (propNames.isEmpty())
+        if (propNames.isEmpty()) {
             return Response.status(Response.Status.NO_CONTENT).build();
+        }
 
         JsonObject fastPropResults = new JsonObject();
 
         final String[] pNamesSplit = propNames.split(",");
         final Stream<String> pNamesStream = Arrays.stream(pNamesSplit);
         pNamesStream.forEach(
-                (propName) -> {
+                propName -> {
                     try{
                         String s = this.configSrc.get(propName);
                         fastPropResults.addProperty(propName, s);

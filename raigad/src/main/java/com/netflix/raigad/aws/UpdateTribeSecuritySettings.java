@@ -50,7 +50,7 @@ public class UpdateTribeSecuritySettings extends Task {
     private static final Logger logger = LoggerFactory.getLogger(UpdateTribeSecuritySettings.class);
 
     public static final String JOB_NAME = "Update_TRIBE_SG";
-    public static boolean firstTimeUpdated = false;
+    public static boolean firstTimeUpdated;
     private static final String COMMA_SEPARATOR = ",";
     private static final String PARAM_SEPARATOR = "=";
 
@@ -64,7 +64,7 @@ public class UpdateTribeSecuritySettings extends Task {
      * es_tribe_source1 : 8001
      * es_tribe_source2 : 8002
      */
-    private final Map<String, Integer> clusterPortMap = new HashMap<String, Integer>();
+    private final Map<String, Integer> clusterPortMap = new HashMap<>();
 
     @Inject
     public UpdateTribeSecuritySettings(IConfiguration config, IMembership membership, IRaigadInstanceFactory factory) {
@@ -102,7 +102,7 @@ public class UpdateTribeSecuritySettings extends Task {
             currentIpClusterMap.put(range, instance.getApp());
         }
 
-        if (addAclClusterMap.keySet().size() > 0) {
+        if (!addAclClusterMap.keySet().isEmpty()) {
             /**
              * clusterInstancesMap
              * es_tribe : 50.60.70.80,50.60.70.81
@@ -134,7 +134,7 @@ public class UpdateTribeSecuritySettings extends Task {
             }
         }
 
-        if (removeAclList.size() > 0) {
+        if (!removeAclList.isEmpty()) {
             for (String acl : removeAclList) {
                 Map<String, List<Integer>> aclPortMap = membership.getACLPortMap(acl);
                 int from = aclPortMap.get(acl).get(0);

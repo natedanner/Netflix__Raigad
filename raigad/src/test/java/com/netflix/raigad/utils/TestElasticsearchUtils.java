@@ -180,7 +180,7 @@ public class TestElasticsearchUtils { @org.mockito.Mock
     }
 
     public static List<RaigadInstance> getRaigadInstances() {
-        List<RaigadInstance> instances = new ArrayList<RaigadInstance>();
+        List<RaigadInstance> instances = new ArrayList<>();
 
         for (int i = 0; i < 3; i++) {
             RaigadInstance raigadInstance = new RaigadInstance();

@@ -63,30 +63,30 @@ public class InstanceDataDAOCassandra {
     private final Keyspace bootKeyspace;
     private final IConfiguration config;
     private final EurekaHostsSupplier eurekaHostsSupplier;
-    private final String BOOT_CLUSTER;
-    private final String KS_NAME;
+    private final String bootCluster;
+    private final String ksName;
     private final int thriftPortForAstyanax;
     private final AstyanaxContext<Keyspace> ctx;
 
     public static final ColumnFamily<String, String> CF_INSTANCES =
-            new ColumnFamily<String, String>(CF_NAME_INSTANCES, StringSerializer.get(), StringSerializer.get());
+            new ColumnFamily<>(CF_NAME_INSTANCES, StringSerializer.get(), StringSerializer.get());
     public static final ColumnFamily<String, String> CF_LOCKS =
-            new ColumnFamily<String, String>(CF_NAME_LOCKS, StringSerializer.get(), StringSerializer.get());
+            new ColumnFamily<>(CF_NAME_LOCKS, StringSerializer.get(), StringSerializer.get());
 
     @Inject
     public InstanceDataDAOCassandra(IConfiguration config, EurekaHostsSupplier eurekaHostsSupplier)
             throws ConnectionException {
         this.config = config;
 
-        BOOT_CLUSTER = config.getBootClusterName();
+        bootCluster = config.getBootClusterName();
 
-        if (BOOT_CLUSTER == null || BOOT_CLUSTER.isEmpty()) {
+        if (bootCluster == null || bootCluster.isEmpty()) {
             throw new RuntimeException("Boot cluster can not be blank. Please use getBootClusterName() property");
         }
 
-        KS_NAME = config.getCassandraKeyspaceName();
+        ksName = config.getCassandraKeyspaceName();
 
-        if (KS_NAME == null || KS_NAME.isEmpty()) {
+        if (ksName == null || ksName.isEmpty()) {
             throw new RuntimeException("Cassandra keyspace can not be blank. Please use getCassandraKeyspaceName() property");
         }
 
@@ -149,7 +149,7 @@ public class InstanceDataDAOCassandra {
     }
 
     public List<RaigadInstance> getAllInstances(String cluster) {
-        List<RaigadInstance> list = new ArrayList<RaigadInstance>();
+        List<RaigadInstance> list = new ArrayList<>();
 
         try {
             String selectClause;
@@ -167,11 +167,11 @@ public class InstanceDataDAOCassandra {
                 logger.debug("Getting nodes for {}: {}", cluster, selectClause);
             }
 
-            final ColumnFamily<String, String> CF_INSTANCES_NEW = ColumnFamily.newColumnFamily(
-                    KS_NAME, StringSerializer.get(), StringSerializer.get());
+            final ColumnFamily<String, String> cfInstancesNew = ColumnFamily.newColumnFamily(
+                    ksName, StringSerializer.get(), StringSerializer.get());
 
             OperationResult<CqlResult<String, String>> result =
-                    bootKeyspace.prepareQuery(CF_INSTANCES_NEW).withCql(selectClause).execute();
+                    bootKeyspace.prepareQuery(cfInstancesNew).withCql(selectClause).execute();
 
             for (Row<String, String> row : result.getResult().getRows()) {
                 list.add(transform(row.getColumns()));
@@ -251,7 +251,7 @@ public class InstanceDataDAOCassandra {
         ColumnListMutation<String> clm = m.withRow(CF_LOCKS, choosingkey);
 
         // Expire in 6 sec
-        clm.putColumn(instance.getInstanceId(), instance.getInstanceId(), new Integer(6));
+        clm.putColumn(instance.getInstanceId(), instance.getInstanceId(), Integer.valueOf(6));
         m.execute();
         int count = bootKeyspace.prepareQuery(CF_LOCKS).getKey(choosingkey).getCount().execute().getResult();
         if (count > 1) {
@@ -268,7 +268,7 @@ public class InstanceDataDAOCassandra {
         }
 
         clm = m.withRow(CF_LOCKS, lockKey);
-        clm.putColumn(instance.getInstanceId(), instance.getInstanceId(), new Integer(600));
+        clm.putColumn(instance.getInstanceId(), instance.getInstanceId(), Integer.valueOf(600));
         m.execute();
         Thread.sleep(100);
         result = bootKeyspace.prepareQuery(CF_LOCKS).getKey(lockKey).execute();
@@ -289,10 +289,10 @@ public class InstanceDataDAOCassandra {
 
             logger.info(selectClause);
 
-            final ColumnFamily<String, String> CF_INSTANCES_NEW = ColumnFamily.newColumnFamily(KS_NAME,
+            final ColumnFamily<String, String> cfInstancesNew = ColumnFamily.newColumnFamily(ksName,
                     StringSerializer.get(), StringSerializer.get());
 
-            OperationResult<CqlResult<String, String>> result = bootKeyspace.prepareQuery(CF_INSTANCES_NEW)
+            OperationResult<CqlResult<String, String>> result = bootKeyspace.prepareQuery(cfInstancesNew)
                     .withCql(selectClause).execute();
 
             if (result == null || result.getResult().getRows().size() == 0) {
@@ -347,11 +347,11 @@ public class InstanceDataDAOCassandra {
     }
 
     private AstyanaxContext<Keyspace> initWithThriftDriverWithEurekaHostsSupplier() {
-        logger.info("Boot cluster (BOOT_CLUSTER) is {}, keyspace name (KS_NAME) is {}", BOOT_CLUSTER, KS_NAME);
+        logger.info("Boot cluster (BOOT_CLUSTER) is {}, keyspace name (KS_NAME) is {}", bootCluster, ksName);
 
         return new AstyanaxContext.Builder()
-                .forCluster(BOOT_CLUSTER)
-                .forKeyspace(KS_NAME)
+                .forCluster(bootCluster)
+                .forKeyspace(ksName)
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
                                 .setDiscoveryType(
@@ -361,18 +361,18 @@ public class InstanceDataDAOCassandra {
                                 "MyConnectionPool")
                                 .setMaxConnsPerHost(3)
                                 .setPort(thriftPortForAstyanax))
-                .withHostSupplier(eurekaHostsSupplier.getSupplier(BOOT_CLUSTER))
+                .withHostSupplier(eurekaHostsSupplier.getSupplier(bootCluster))
                 .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
                 .buildKeyspace(ThriftFamilyFactory.getInstance());
 
     }
 
     private AstyanaxContext<Keyspace> initWithThriftDriverWithExternalHostsSupplier() {
-        logger.info("Boot cluster (BOOT_CLUSTER) is {}, keyspace name (KS_NAME) is {}", BOOT_CLUSTER, KS_NAME);
+        logger.info("Boot cluster (BOOT_CLUSTER) is {}, keyspace name (KS_NAME) is {}", bootCluster, ksName);
 
         return new AstyanaxContext.Builder()
-                .forCluster(BOOT_CLUSTER)
-                .forKeyspace(KS_NAME)
+                .forCluster(bootCluster)
+                .forKeyspace(ksName)
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
                                 .setDiscoveryType(
@@ -397,7 +397,7 @@ public class InstanceDataDAOCassandra {
                 List<Host> hosts = new ArrayList<>();
                 List<String> cassandraHostnames = new ArrayList<>(Arrays.asList(StringUtils.split(config.getCommaSeparatedCassandraHostNames(), ",")));
 
-                if (cassandraHostnames.size() == 0) {
+                if (cassandraHostnames.isEmpty()) {
                     throw new RuntimeException("Cassandra host names can not be blank, at least one host is needed." +
                             "Please use getCommaSeparatedCassandraHostNames() property.");
                 }

@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
-public class ElasticsearchTransportClient {
+public final class ElasticsearchTransportClient {
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchTransportClient.class);
 
     private static AtomicReference<ElasticsearchTransportClient> elasticsearchTransportClientAtomicReference = new AtomicReference<>(null);

@@ -41,7 +41,7 @@ public class ElasticsearchUtil {
 
     @SuppressWarnings("unchecked")
     public static List<RaigadInstance> getRaigadInstancesFromJsonString(String jsonInstances, Logger logger) {
-        List<RaigadInstance> raigadInstances = new ArrayList<RaigadInstance>();
+        List<RaigadInstance> raigadInstances = new ArrayList<>();
 
         try {
             Map<String, Object> topLevelInstanceMap = (Map<String, Object>) jsonToMap(jsonInstances).get(TOP_LEVEL_ELEMENT);

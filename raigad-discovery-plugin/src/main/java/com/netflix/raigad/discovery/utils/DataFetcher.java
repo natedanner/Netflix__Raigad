@@ -66,8 +66,9 @@ public class DataFetcher {
                 logger.warn("Failed to close response stream from Raigad", e);
             }
 
-            if (httpConnection != null)
+            if (httpConnection != null) {
                 httpConnection.disconnect();
+            }
         }
     }
 }

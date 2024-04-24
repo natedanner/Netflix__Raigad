@@ -66,7 +66,7 @@ public class OsStatsMonitor extends Task {
 
             List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
 
-            if (nodeStatsList.size() > 0) {
+            if (!nodeStatsList.isEmpty()) {
                 nodeStats = nodeStatsList.get(0);
             }
 
@@ -115,7 +115,7 @@ public class OsStatsMonitor extends Task {
         private final AtomicReference<OsStatsBean> osStatsBean;
 
         public Elasticsearch_OsStatsReporter() {
-            osStatsBean = new AtomicReference<OsStatsBean>(new OsStatsBean());
+            osStatsBean = new AtomicReference<>(new OsStatsBean());
         }
 
         @Monitor(name = "free_in_bytes", type = DataSourceType.GAUGE)

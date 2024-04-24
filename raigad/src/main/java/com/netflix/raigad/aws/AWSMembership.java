@@ -68,9 +68,9 @@ public class AWSMembership implements IMembership {
             for (AutoScalingGroup autoScalingGroup : describeAutoScalingGroupsResult.getAutoScalingGroups()) {
                 List<String> asgInstanceIds = Lists.newArrayList();
                 for (Instance asgInstance : autoScalingGroup.getInstances()) {
-                    if (!(asgInstance.getLifecycleState().equalsIgnoreCase("terminating") ||
-                            asgInstance.getLifecycleState().equalsIgnoreCase("shutting-down") ||
-                            asgInstance.getLifecycleState().equalsIgnoreCase("terminated"))) {
+                    if (!("terminating".equalsIgnoreCase(asgInstance.getLifecycleState()) ||
+                            "shutting-down".equalsIgnoreCase(asgInstance.getLifecycleState()) ||
+                            "terminated".equalsIgnoreCase(asgInstance.getLifecycleState()))) {
                         asgInstanceIds.add(asgInstance.getInstanceId());
                     }
                 }
@@ -128,7 +128,7 @@ public class AWSMembership implements IMembership {
 
         try {
             client = getEc2Client();
-            List<IpPermission> ipPermissions = new ArrayList<IpPermission>();
+            List<IpPermission> ipPermissions = new ArrayList<>();
             ipPermissions.add(new IpPermission().withFromPort(from).withIpProtocol("tcp").withIpRanges(listIPs).withToPort(to));
 
             if (config.isDeployedInVPC()) {
@@ -161,7 +161,7 @@ public class AWSMembership implements IMembership {
 
         try {
             client = getEc2Client();
-            List<IpPermission> ipPermissions = new ArrayList<IpPermission>();
+            List<IpPermission> ipPermissions = new ArrayList<>();
             ipPermissions.add(new IpPermission().withFromPort(from).withIpProtocol("tcp").withIpRanges(listIPs).withToPort(to));
 
             if (config.isDeployedInVPC()) {
@@ -194,7 +194,7 @@ public class AWSMembership implements IMembership {
 
         try {
             client = getEc2Client();
-            List<String> ipPermissions = new ArrayList<String>();
+            List<String> ipPermissions = new ArrayList<>();
             DescribeSecurityGroupsResult result;
 
             if (config.isDeployedInVPC()) {
@@ -228,7 +228,7 @@ public class AWSMembership implements IMembership {
 
     public Map<String, List<Integer>> getACLPortMap(String acl) {
         AmazonEC2 client = null;
-        Map<String, List<Integer>> aclPortMap = new HashMap<String, List<Integer>>();
+        Map<String, List<Integer>> aclPortMap = new HashMap<>();
 
         try {
             client = getEc2Client();
@@ -252,7 +252,7 @@ public class AWSMembership implements IMembership {
                     for (String ipRange : perm.getIpRanges()) {
                         // If given ACL matches from the list of IP ranges then look for "from" and "to" ports
                         if (acl.equalsIgnoreCase(ipRange)) {
-                            List<Integer> fromToList = new ArrayList<Integer>();
+                            List<Integer> fromToList = new ArrayList<>();
                             fromToList.add(perm.getFromPort());
                             fromToList.add(perm.getToPort());
                             logger.info("ACL: {}, from: {}, to: {}", acl, perm.getFromPort(), perm.getToPort());

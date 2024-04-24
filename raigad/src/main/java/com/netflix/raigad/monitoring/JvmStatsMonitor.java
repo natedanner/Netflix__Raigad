@@ -72,7 +72,7 @@ public class JvmStatsMonitor extends Task {
 
             List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
 
-            if (nodeStatsList.size() > 0) {
+            if (!nodeStatsList.isEmpty()) {
                 nodeStats = nodeStatsList.get(0);
             }
 
@@ -143,7 +143,7 @@ public class JvmStatsMonitor extends Task {
         private final AtomicReference<JvmStatsBean> jvmStatsBean;
 
         public Elasticsearch_JvmStatsReporter() {
-            jvmStatsBean = new AtomicReference<JvmStatsBean>(new JvmStatsBean());
+            jvmStatsBean = new AtomicReference<>(new JvmStatsBean());
         }
 
         @Monitor(name = "heap_committed_in_bytes", type = DataSourceType.GAUGE)

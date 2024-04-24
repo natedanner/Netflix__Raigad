@@ -229,7 +229,7 @@ public class TestBackupRestore extends ESIntegTestCase {
     }
 
     public static void cleanupDir(String dirPath, List<String> childDirs) throws IOException {
-        if (childDirs == null || childDirs.size() == 0) {
+        if (childDirs == null || childDirs.isEmpty()) {
             FileUtils.cleanDirectory(new File(dirPath));
         } else {
             for (String childDir : childDirs) {

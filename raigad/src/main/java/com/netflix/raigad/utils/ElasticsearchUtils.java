@@ -115,27 +115,21 @@ public class ElasticsearchUtils {
     }
 
     public static boolean amIMasterNode(IConfiguration config, HttpModule httpModule) throws Exception {
-        String URL = httpModule.findMasterNodeURL();
-        String response = SystemUtils.runHttpGetCommand(URL);
+        String url = httpModule.findMasterNodeURL();
+        String response = SystemUtils.runHttpGetCommand(url);
 
         if (config.isDebugEnabled()) {
-            logger.debug("Calling {} returned: {}", URL, response);
+            logger.debug("Calling {} returned: {}", url, response);
         }
 
         response = StringUtils.trim(response);
 
         // Check the response
         if (StringUtils.isEmpty(response)) {
-            logger.error("Response from " + URL + " is empty");
+            logger.error("Response from " + url + " is empty");
             return false;
         }
-
-        // Checking if the current node is a master node
-        if (response.equalsIgnoreCase(config.getHostIP()) || response.equalsIgnoreCase(config.getHostLocalIP())) {
-            return true;
-        }
-
-        return false;
+        return response.equalsIgnoreCase(config.getHostIP()) || response.equalsIgnoreCase(config.getHostLocalIP());
     }
 
     public static List<String> getAvailableSnapshots(Client transportClient, String repositoryName) {

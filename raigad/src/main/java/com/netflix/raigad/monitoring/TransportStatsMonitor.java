@@ -65,7 +65,7 @@ public class TransportStatsMonitor extends Task {
 
             List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
 
-            if (nodeStatsList.size() > 0) {
+            if (!nodeStatsList.isEmpty()) {
                 nodeStats = nodeStatsList.get(0);
             }
 
@@ -99,7 +99,7 @@ public class TransportStatsMonitor extends Task {
         private final AtomicReference<TransportStatsBean> transportStatsBean;
 
         public Elasticsearch_TransportStatsReporter() {
-            transportStatsBean = new AtomicReference<TransportStatsBean>(new TransportStatsBean());
+            transportStatsBean = new AtomicReference<>(new TransportStatsBean());
         }
 
         @Monitor(name = "server_open", type = DataSourceType.GAUGE)

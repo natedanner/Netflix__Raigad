@@ -89,8 +89,9 @@ public class RestoreBackupManager extends Task {
 
         // Get Repository Name : This will serve as BasePath Suffix
         String sourceRepoName = StringUtils.isBlank(sourceRepositoryName) ? config.getRestoreRepositoryName() : sourceRepositoryName;
-        if (StringUtils.isBlank(sourceRepoName))
+        if (StringUtils.isBlank(sourceRepoName)) {
             throw new RestoreBackupException("Repository Name is Null or Empty");
+        }
 
         //Attach suffix to the repository name so that it does not conflict with Snapshot Repository name
         String restoreRepositoryName = sourceRepoName + SUFFIX_SEPARATOR_TAG + config.getRestoreSourceClusterName();
@@ -111,8 +112,9 @@ public class RestoreBackupManager extends Task {
         if (StringUtils.isBlank(snapshotN)) {
             //Pick the last Snapshot from the available Snapshots
             List<String> snapshots = ElasticsearchUtils.getAvailableSnapshots(esTransportClient, restoreRepositoryName);
-            if (snapshots.isEmpty())
+            if (snapshots.isEmpty()) {
                 throw new RestoreBackupException("No available snapshots in <" + restoreRepositoryName + "> repository.");
+            }
 
             //Sorting Snapshot names in Reverse Order
             Collections.sort(snapshots, Collections.reverseOrder());
@@ -136,8 +138,9 @@ public class RestoreBackupManager extends Task {
 
         if (restoreSnapshotResponse.status() == RestStatus.OK) {
             printRestoreDetails(restoreSnapshotResponse);
-        } else if (restoreSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR)
+        } else if (restoreSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR) {
             logger.info("Restore Completely Failed");
+        }
 
     }
 
@@ -145,14 +148,14 @@ public class RestoreBackupManager extends Task {
     public void printRestoreDetails(RestoreSnapshotResponse restoreSnapshotResponse) {
         StringBuilder builder = new StringBuilder();
         builder.append("Restore Details:");
-        builder.append("\n\t Name = " + restoreSnapshotResponse.getRestoreInfo().name());
+        builder.append("\n\t Name = ").append(restoreSnapshotResponse.getRestoreInfo().name());
         builder.append("\n\t Indices : ");
         for (String index : restoreSnapshotResponse.getRestoreInfo().indices()) {
-            builder.append("\n\t\t Index = " + index);
+            builder.append("\n\t\t Index = ").append(index);
         }
-        builder.append("\n\t Total Shards = " + restoreSnapshotResponse.getRestoreInfo().totalShards());
-        builder.append("\n\t Successful Shards = " + restoreSnapshotResponse.getRestoreInfo().successfulShards());
-        builder.append("\n\t Total Failed Shards = " + restoreSnapshotResponse.getRestoreInfo().failedShards());
+        builder.append("\n\t Total Shards = ").append(restoreSnapshotResponse.getRestoreInfo().totalShards());
+        builder.append("\n\t Successful Shards = ").append(restoreSnapshotResponse.getRestoreInfo().successfulShards());
+        builder.append("\n\t Total Failed Shards = ").append(restoreSnapshotResponse.getRestoreInfo().failedShards());
 
         logger.info(builder.toString());
     }

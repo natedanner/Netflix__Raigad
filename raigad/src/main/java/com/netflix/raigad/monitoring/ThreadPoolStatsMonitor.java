@@ -66,7 +66,7 @@ public class ThreadPoolStatsMonitor extends Task {
 
             List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
 
-            if (nodeStatsList.size() > 0) {
+            if (!nodeStatsList.isEmpty()) {
                 nodeStats = nodeStatsList.get(0);
             }
 
@@ -86,28 +86,28 @@ public class ThreadPoolStatsMonitor extends Task {
 
             while (threadPoolStatsIterator.hasNext()) {
                 ThreadPoolStats.Stats stat = threadPoolStatsIterator.next();
-                if (stat.getName().equals("index")) {
+                if ("index".equals(stat.getName())) {
                     threadPoolStatsBean.indexThreads = stat.getThreads();
                     threadPoolStatsBean.indexQueue = stat.getQueue();
                     threadPoolStatsBean.indexActive = stat.getActive();
                     threadPoolStatsBean.indexRejected = stat.getRejected();
                     threadPoolStatsBean.indexLargest = stat.getLargest();
                     threadPoolStatsBean.indexCompleted = stat.getCompleted();
-                } else if (stat.getName().equals("get")) {
+                } else if ("get".equals(stat.getName())) {
                     threadPoolStatsBean.getThreads = stat.getThreads();
                     threadPoolStatsBean.getQueue = stat.getQueue();
                     threadPoolStatsBean.getActive = stat.getActive();
                     threadPoolStatsBean.getRejected = stat.getRejected();
                     threadPoolStatsBean.getLargest = stat.getLargest();
                     threadPoolStatsBean.getCompleted = stat.getCompleted();
-                } else if (stat.getName().equals("search")) {
+                } else if ("search".equals(stat.getName())) {
                     threadPoolStatsBean.searchThreads = stat.getThreads();
                     threadPoolStatsBean.searchQueue = stat.getQueue();
                     threadPoolStatsBean.searchActive = stat.getActive();
                     threadPoolStatsBean.searchRejected = stat.getRejected();
                     threadPoolStatsBean.searchLargest = stat.getLargest();
                     threadPoolStatsBean.searchCompleted = stat.getCompleted();
-                } else if (stat.getName().equals("bulk")) {
+                } else if ("bulk".equals(stat.getName())) {
                     threadPoolStatsBean.bulkThreads = stat.getThreads();
                     threadPoolStatsBean.bulkQueue = stat.getQueue();
                     threadPoolStatsBean.bulkActive = stat.getActive();
@@ -127,7 +127,7 @@ public class ThreadPoolStatsMonitor extends Task {
         private final AtomicReference<ThreadPoolStatsBean> threadPoolBean;
 
         public Elasticsearch_ThreadPoolStatsReporter() {
-            threadPoolBean = new AtomicReference<ThreadPoolStatsBean>(new ThreadPoolStatsBean());
+            threadPoolBean = new AtomicReference<>(new ThreadPoolStatsBean());
         }
 
         @Monitor(name = "IndexThreads", type = DataSourceType.GAUGE)

@@ -67,7 +67,7 @@ public class ProcessStatsMonitor extends Task {
 
             List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
 
-            if (nodeStatsList.size() > 0) {
+            if (!nodeStatsList.isEmpty()) {
                 nodeStats = nodeStatsList.get(0);
             }
 
@@ -105,7 +105,7 @@ public class ProcessStatsMonitor extends Task {
         private final AtomicReference<ProcessStatsBean> processStatsBean;
 
         public Elasticsearch_ProcessStatsReporter() {
-            processStatsBean = new AtomicReference<ProcessStatsBean>(new ProcessStatsBean());
+            processStatsBean = new AtomicReference<>(new ProcessStatsBean());
         }
 
         @Monitor(name = "resident_in_bytes", type = DataSourceType.GAUGE)

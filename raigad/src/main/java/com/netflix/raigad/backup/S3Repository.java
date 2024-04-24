@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  */
 
 @Singleton
-public class S3Repository extends AbstractRepository {
+public final class S3Repository extends AbstractRepository {
     private static final Logger logger = LoggerFactory.getLogger(S3Repository.class);
     private static final String S3_REPO_DATE_FORMAT = "yyyyMMdd";
     private static final DateTimeZone currentZone = DateTimeZone.UTC;

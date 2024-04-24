@@ -67,7 +67,7 @@ public class FsStatsMonitor extends Task {
 
             List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
 
-            if (nodeStatsList.size() > 0) {
+            if (!nodeStatsList.isEmpty()) {
                 nodeStats = nodeStatsList.get(0);
             }
 
@@ -97,7 +97,7 @@ public class FsStatsMonitor extends Task {
         private final AtomicReference<FsStatsBean> fsStatsBean;
 
         public Elasticsearch_FsStatsReporter() {
-            fsStatsBean = new AtomicReference<FsStatsBean>(new FsStatsBean());
+            fsStatsBean = new AtomicReference<>(new FsStatsBean());
         }
 
         @Monitor(name = "total_bytes", type = DataSourceType.GAUGE)

@@ -71,15 +71,17 @@ public abstract class AbstractRepository {
                         break;
                     }
                 }
-                if (config.isDebugEnabled())
+                if (config.isDebugEnabled()) {
                     for (RepositoryMetaData repositoryMetaData : repositoriesMetaData.repositories())
                         logger.debug("Repository <" + repositoryMetaData.name() + ">");
+                }
 
             }
-            if (doesRepoExists)
+            if (doesRepoExists) {
                 logger.info("Repository <" + repositoryName + "> already exists");
-            else
+            } else {
                 logger.info("Repository <" + repositoryName + "> does NOT exist");
+            }
 
         } catch (Exception e) {
             logger.warn("Exception thrown while listing Snapshot Repositories", e);

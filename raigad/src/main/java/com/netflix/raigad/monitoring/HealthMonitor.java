@@ -48,7 +48,7 @@ public class HealthMonitor extends Task {
     public static final String METRIC_NAME = "Elasticsearch_HealthMonitor";
     private final Elasticsearch_HealthReporter healthReporter;
     private final InstanceManager instanceManager;
-    private static TimeValue MASTER_NODE_TIMEOUT = TimeValue.timeValueSeconds(60);
+    private static TimeValue masterNodeTimeout = TimeValue.timeValueSeconds(60);
     private final DiscoveryClient discoveryClient;
     private final HttpModule httpModule;
 
@@ -79,8 +79,8 @@ public class HealthMonitor extends Task {
         HealthBean healthBean = new HealthBean();
         try {
             Client esTransportClient = ElasticsearchTransportClient.instance(config).getTransportClient();
-            ClusterHealthStatus clusterHealthStatus = esTransportClient.admin().cluster().prepareHealth().setTimeout(MASTER_NODE_TIMEOUT).execute().get().getStatus();
-            ClusterHealthResponse clusterHealthResponse = esTransportClient.admin().cluster().prepareHealth().execute().actionGet(MASTER_NODE_TIMEOUT);
+            ClusterHealthStatus clusterHealthStatus = esTransportClient.admin().cluster().prepareHealth().setTimeout(masterNodeTimeout).execute().get().getStatus();
+            ClusterHealthResponse clusterHealthResponse = esTransportClient.admin().cluster().prepareHealth().execute().actionGet(masterNodeTimeout);
 
             if (clusterHealthStatus == null) {
                 logger.info("ClusterHealthStatus is null, hence returning (no health).");
@@ -89,26 +89,26 @@ public class HealthMonitor extends Task {
             }
 
             //Check if status = GREEN, YELLOW or RED
-            if (clusterHealthStatus.name().equalsIgnoreCase("GREEN")) {
+            if ("GREEN".equalsIgnoreCase(clusterHealthStatus.name())) {
                 healthBean.greenorredstatus = 0;
                 healthBean.greenoryellowstatus = 0;
-            } else if (clusterHealthStatus.name().equalsIgnoreCase("YELLOW")) {
+            } else if ("YELLOW".equalsIgnoreCase(clusterHealthStatus.name())) {
                 healthBean.greenoryellowstatus = 1;
                 healthBean.greenorredstatus = 0;
-            } else if (clusterHealthStatus.name().equalsIgnoreCase("RED")) {
+            } else if ("RED".equalsIgnoreCase(clusterHealthStatus.name())) {
                 healthBean.greenorredstatus = 1;
                 healthBean.greenoryellowstatus = 0;
             }
 
             if (config.isNodeMismatchWithDiscoveryEnabled()) {
                 // Check if there is node mismatch between discovery and ES
-                healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? 0 : 1;
+                healthBean.nodematch = clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size() ? 0 : 1;
             } else {
-                healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == config.getDesiredNumberOfNodesInCluster()) ? 0 : 1;
+                healthBean.nodematch = clusterHealthResponse.getNumberOfNodes() == config.getDesiredNumberOfNodesInCluster() ? 0 : 1;
             }
 
             if (config.isEurekaHealthCheckEnabled()) {
-                healthBean.eurekanodematch = (clusterHealthResponse.getNumberOfNodes() == discoveryClient.getApplication(config.getAppName()).getInstances().size()) ? 0 : 1;
+                healthBean.eurekanodematch = clusterHealthResponse.getNumberOfNodes() == discoveryClient.getApplication(config.getAppName()).getInstances().size() ? 0 : 1;
             }
         } catch (Exception e) {
             resetHealthStats(healthBean);
@@ -122,7 +122,7 @@ public class HealthMonitor extends Task {
         private final AtomicReference<HealthBean> healthBean;
 
         public Elasticsearch_HealthReporter() {
-            healthBean = new AtomicReference<HealthBean>(new HealthBean());
+            healthBean = new AtomicReference<>(new HealthBean());
         }
 
         @Monitor(name = "es_healthstatus_greenorred", type = DataSourceType.GAUGE)

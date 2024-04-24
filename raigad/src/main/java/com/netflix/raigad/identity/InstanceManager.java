@@ -66,8 +66,7 @@ public class InstanceManager {
 		thisInstance = new RetriableCallable<RaigadInstance>() {
 			@Override
 			public RaigadInstance retriableCall() throws Exception {
-				RaigadInstance instance = registerInstance(instanceFactory, config);
-				return instance;
+				return registerInstance(instanceFactory, config);
 			}
 		}.call();
 
@@ -141,7 +140,7 @@ public class InstanceManager {
 	}
 
 	private List<RaigadInstance> getInstanceList() {
-		List<RaigadInstance> instances = new ArrayList<RaigadInstance>();
+		List<RaigadInstance> instances = new ArrayList<>();
 
 		// Considering same cluster will not serve as a tribe node and source cluster for the tribe node
 		if (config.amITribeNode()) {
@@ -192,7 +191,7 @@ public class InstanceManager {
 	}
 
 	private List<RaigadInstance> getInstanceListPerCluster(String clusterName) {
-		List<RaigadInstance> instances = new ArrayList<RaigadInstance>();
+		List<RaigadInstance> instances = new ArrayList<>();
 		instances.addAll(instanceFactory.getAllIds(clusterName.trim().toLowerCase()));
 
 		if (config.isDebugEnabled()) {
@@ -206,6 +205,6 @@ public class InstanceManager {
 
 	public boolean isMaster() {
 		//For non-dedicated deployments, return true (every node can be a master)
-		return (!config.isAsgBasedDedicatedDeployment() || config.getASGName().toLowerCase().contains("master"));
+		return !config.isAsgBasedDedicatedDeployment() || config.getASGName().toLowerCase().contains("master");
 	}
 }

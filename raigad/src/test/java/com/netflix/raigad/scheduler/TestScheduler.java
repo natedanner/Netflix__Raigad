@@ -71,7 +71,7 @@ public class TestScheduler {
             super(config, MBeanServerFactory.newMBeanServer());
         }
 
-        public static int count = 0;
+        public static int count;
 
         @Override
         public void execute() {

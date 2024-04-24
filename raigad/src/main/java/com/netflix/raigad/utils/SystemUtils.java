@@ -191,8 +191,9 @@ public class SystemUtils {
             client.setParams(httpParameters);
 
             HttpPost postRequest = new HttpPost(url);
-            if (StringUtils.isNotEmpty(jsonBody))
+            if (StringUtils.isNotEmpty(jsonBody)) {
                 postRequest.setEntity(new StringEntity(jsonBody, StandardCharsets.UTF_8));
+            }
             postRequest.setHeader("Content-type", "application/json");
 
             HttpResponse resp = client.execute(postRequest);
@@ -213,8 +214,9 @@ public class SystemUtils {
         } catch (Exception e) {
             throw new ElasticsearchHttpException("Caught an exception during execution of URL (" + url + ")Exception Message: (" + e + ")");
         } finally {
-            if (isStream != null)
+            if (isStream != null) {
                 isStream.close();
+            }
         }
         return return_;
     }
@@ -224,9 +226,9 @@ public class SystemUtils {
      * itself.
      */
     public static void cleanupDir(String dirPath, List<String> childdirs) throws IOException {
-        if (childdirs == null || childdirs.size() == 0)
+        if (childdirs == null || childdirs.isEmpty()) {
             FileUtils.cleanDirectory(new File(dirPath));
-        else {
+        } else {
             for (String cdir : childdirs)
                 FileUtils.cleanDirectory(new File(dirPath + "/" + cdir));
         }
@@ -237,8 +239,9 @@ public class SystemUtils {
         if (dirFile.exists() && dirFile.isFile()) {
             dirFile.delete();
             dirFile.mkdirs();
-        } else if (!dirFile.exists())
+        } else if (!dirFile.exists()) {
             dirFile.mkdirs();
+        }
     }
 
     public static byte[] md5(byte[] buf) {
@@ -278,7 +281,7 @@ public class SystemUtils {
     }
 
     public static String toBase64(byte[] md5) {
-        byte encoded[] = Base64.encodeBase64(md5, false);
+        byte[] encoded = Base64.encodeBase64(md5, false);
         return new String(encoded);
     }
 

@@ -53,7 +53,7 @@ public class UpdateSecuritySettings extends Task {
     private static final Logger logger = LoggerFactory.getLogger(UpdateSecuritySettings.class);
 
     public static final String JOB_NAME = "Update_SG";
-    public static boolean firstTimeUpdated = false;
+    public static boolean firstTimeUpdated;
     private static final Random RANDOM = new Random();
 
     private final IMembership membership;
@@ -91,7 +91,7 @@ public class UpdateSecuritySettings extends Task {
             }
         }
 
-        if (ipsToAdd.size() > 0) {
+        if (!ipsToAdd.isEmpty()) {
             logger.info("Adding IPs on ports {} and {}: {}", transportPort, restPort, ipsToAdd);
             membership.addACL(ipsToAdd, transportPort, transportPort);
             membership.addACL(ipsToAdd, restPort, restPort);
@@ -107,7 +107,7 @@ public class UpdateSecuritySettings extends Task {
             }
         }
 
-        if (ipsToRemove.size() > 0) {
+        if (!ipsToRemove.isEmpty()) {
             logger.info("Removing IPs on ports {} and {}: {}", transportPort, restPort, ipsToRemove);
             membership.removeACL(ipsToRemove, transportPort, transportPort);
             membership.removeACL(ipsToRemove, restPort, restPort);
@@ -118,8 +118,8 @@ public class UpdateSecuritySettings extends Task {
     private List<RaigadInstance> getInstanceList() {
         List<RaigadInstance> instances = new ArrayList<>();
 
-        List<String> tribeClusters = new ArrayList<String>(Arrays.asList(StringUtils.split(config.getCommaSeparatedTribeClusterNames(), ",")));
-        assert (tribeClusters.size() != 0) : "Need at least one tribe cluster";
+        List<String> tribeClusters = new ArrayList<>(Arrays.asList(StringUtils.split(config.getCommaSeparatedTribeClusterNames(), ",")));
+        assert (!tribeClusters.isEmpty()) : "Need at least one tribe cluster";
 
         tribeClusters.forEach(tribeClusterName -> instances.addAll(factory.getAllIds(tribeClusterName)));
 

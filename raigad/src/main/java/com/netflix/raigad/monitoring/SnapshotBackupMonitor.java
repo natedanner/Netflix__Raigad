@@ -73,7 +73,7 @@ public class SnapshotBackupMonitor extends Task {
         private final AtomicReference<SnapshotBackupBean> snapshotBackupBean;
 
         public Elasticsearch_SnapshotBackupReporter() {
-            snapshotBackupBean = new AtomicReference<SnapshotBackupBean>(new SnapshotBackupBean());
+            snapshotBackupBean = new AtomicReference<>(new SnapshotBackupBean());
         }
 
         @Monitor(name = "snapshot_success", type = DataSourceType.GAUGE)

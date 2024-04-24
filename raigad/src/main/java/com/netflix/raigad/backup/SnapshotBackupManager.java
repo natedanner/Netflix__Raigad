@@ -86,8 +86,9 @@ public class SnapshotBackupManager extends Task {
                 //Run Snapshot Backup
                 runSnapshotBackup();
             } else {
-                if (config.isDebugEnabled())
+                if (config.isDebugEnabled()) {
                     logger.debug("Current node is not a Master Node yet, hence not running a Snapshot");
+                }
             }
         } catch (Exception e) {
             snapshotFailure.incrementAndGet();
@@ -127,26 +128,26 @@ public class SnapshotBackupManager extends Task {
     public void printSnapshotDetails(CreateSnapshotResponse createSnapshotResponse) {
         StringBuilder builder = new StringBuilder();
         builder.append("Snapshot Details:");
-        builder.append("\n\t Name = " + createSnapshotResponse.getSnapshotInfo().snapshotId().getName());
+        builder.append("\n\t Name = ").append(createSnapshotResponse.getSnapshotInfo().snapshotId().getName());
         builder.append("\n\t Indices : ");
         for (String index : createSnapshotResponse.getSnapshotInfo().indices()) {
-            builder.append("\n\t\t Index = " + index);
+            builder.append("\n\t\t Index = ").append(index);
         }
-        builder.append("\n\t Start Time = " + createSnapshotResponse.getSnapshotInfo().startTime());
-        builder.append("\n\t End Time = " + createSnapshotResponse.getSnapshotInfo().endTime());
+        builder.append("\n\t Start Time = ").append(createSnapshotResponse.getSnapshotInfo().startTime());
+        builder.append("\n\t End Time = ").append(createSnapshotResponse.getSnapshotInfo().endTime());
         long minuteDuration = (createSnapshotResponse.getSnapshotInfo().endTime() - createSnapshotResponse.getSnapshotInfo().startTime()) / (1000 * 60);
-        builder.append("\n\t Total Time Taken = " + minuteDuration + " Minutes");
-        builder.append("\n\t Total Shards = " + createSnapshotResponse.getSnapshotInfo().totalShards());
-        builder.append("\n\t Successful Shards = " + createSnapshotResponse.getSnapshotInfo().successfulShards());
-        builder.append("\n\t Total Failed Shards = " + createSnapshotResponse.getSnapshotInfo().failedShards());
+        builder.append("\n\t Total Time Taken = ").append(minuteDuration).append(" Minutes");
+        builder.append("\n\t Total Shards = ").append(createSnapshotResponse.getSnapshotInfo().totalShards());
+        builder.append("\n\t Successful Shards = ").append(createSnapshotResponse.getSnapshotInfo().successfulShards());
+        builder.append("\n\t Total Failed Shards = ").append(createSnapshotResponse.getSnapshotInfo().failedShards());
 
         if (createSnapshotResponse.getSnapshotInfo().failedShards() > 0) {
             for (SnapshotShardFailure failedShard : createSnapshotResponse.getSnapshotInfo().shardFailures()) {
                 builder.append("\n\t Failed Shards : ");
-                builder.append("\n\t\t Index = " + failedShard.index());
-                builder.append("\n\t\t Shard Id = " + failedShard.shardId());
-                builder.append("\n\t\t Node Id = " + failedShard.nodeId());
-                builder.append("\n\t\t Reason = " + failedShard.reason());
+                builder.append("\n\t\t Index = ").append(failedShard.index());
+                builder.append("\n\t\t Shard Id = ").append(failedShard.shardId());
+                builder.append("\n\t\t Node Id = ").append(failedShard.nodeId());
+                builder.append("\n\t\t Reason = ").append(failedShard.reason());
             }
         }
 
@@ -171,10 +172,11 @@ public class SnapshotBackupManager extends Task {
         StringBuilder snapshotName = new StringBuilder();
         if (includeIndexNameInSnapshot) {
             String indexName;
-            if (indices.toLowerCase().equals("all"))
+            if ("all".equals(indices.toLowerCase())) {
                 indexName = "all";
-            else
+            } else {
                 indexName = StringUtils.replace(indices, ",", "_");
+            }
             snapshotName.append(indexName).append("_");
         }
 

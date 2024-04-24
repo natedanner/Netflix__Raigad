@@ -73,7 +73,7 @@ public class NodeHealthMonitor extends Task {
         private final AtomicReference<HealthBean> healthBean;
 
         public ElasticsearchNodeHealthReporter() {
-            healthBean = new AtomicReference<HealthBean>(new HealthBean());
+            healthBean = new AtomicReference<>(new HealthBean());
         }
 
         @Monitor(name = "es_isesprocessdown", type = DataSourceType.GAUGE)

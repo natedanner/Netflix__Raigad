@@ -88,9 +88,9 @@ public class ElasticsearchAdmin {
     public Response esExistingRepositories() throws Exception {
         logger.info("Retrieving existing repositories through a REST call...");
 
-        String URL = "http://127.0.0.1:" + config.getHttpPort() + "/_snapshot/";
-        String RESPONSE = SystemUtils.runHttpGetCommand(URL);
-        JSONObject jsonObject = (JSONObject) new JSONParser().parse(RESPONSE);
+        String url = "http://127.0.0.1:" + config.getHttpPort() + "/_snapshot/";
+        String response = SystemUtils.runHttpGetCommand(url);
+        JSONObject jsonObject = (JSONObject) new JSONParser().parse(response);
 
         return Response.ok(jsonObject, MediaType.APPLICATION_JSON).build();
     }
@@ -100,7 +100,7 @@ public class ElasticsearchAdmin {
     public Response esShardAllocationEnable(@PathParam("type") String type) throws IOException {
         logger.info("Enabling shard allocation through a REST call...");
 
-        if (!type.equalsIgnoreCase("transient") && !type.equalsIgnoreCase("persistent")) {
+        if (!"transient".equalsIgnoreCase(type) && !"persistent".equalsIgnoreCase(type)) {
             throw new IOException("Parameter must be equal to transient or persistent");
         }
 
@@ -120,7 +120,7 @@ public class ElasticsearchAdmin {
     public Response esShardAllocationDisable(@PathParam("type") String type) throws IOException {
         logger.info("Disabling shard allocation through a REST call...");
 
-        if (!type.equalsIgnoreCase("transient") && !type.equalsIgnoreCase("persistent")) {
+        if (!"transient".equalsIgnoreCase(type) && !"persistent".equalsIgnoreCase(type)) {
             throw new IOException("Parameter must be equal to transient or persistent");
         }
 
